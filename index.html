@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy FASTag – Order Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 40px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #ff6a00;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    .submit-btn {
+      background: #ff6a00;
+      color: white;
+      border: none;
+      padding: 12px;
+      margin-top: 20px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 5px;
+    }
+    .note-green {
+      font-size: 14px;
+      color: green;
+      margin-top: 20px;
+      background: #e6ffe6;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: left;
+    }
+    .note-red {
+      font-size: 14px;
+      color: red;
+      margin-top: 10px;
+      background: #ffecec;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Buy FASTag – ₹600</h1>
+
+    <div class="note-green">
+      ₹300 Total balance in your Fastag<br>
+      🔹 ₹100 – Actual Balance<br>
+      🔹 ₹200 – Refundable Security Deposit (Can be used when balance is below ₹100)<br><br>
+      Full KYC, activation & setup included
+    </div>
+
+    <div class="note-red">
+      ✅ RC Book, PAN Card and Aadhar Card / Driving License are compulsory documents.<br>
+      ✅ Aadhar/License & PAN must have same name & date of birth.<br>
+      ✅ You will receive an OTP during activation process.
+    </div>
+
+    <form>
+      <label>Full Name</label>
+      <input type="text" name="fullname" required>
+
+      <label>Mobile Number (for OTP)</label>
+      <input type="tel" name="mobile" required>
+
+      <label>City</label>
+      <input type="text" name="city" required>
+
+      <label>Delivery Method</label>
+      <select name="delivery">
+        <option value="pickup">Pickup (₹0)</option>
+        <option value="courier">Courier – 3-7 Days (₹100)</option>
+        <option value="porter">Same Day – Surat Only (₹49–₹150 Approx)</option>
+      </select>
+
+      <label>Address</label>
+      <input type="text" name="address" required>
+
+      <label>RC Book (Front)</label>
+      <input type="file" name="rc_front" required>
+
+      <label>RC Book (Back)</label>
+      <input type="file" name="rc_back" required>
+
+      <label>Aadhar or Driving License</label>
+      <input type="file" name="id_proof" required>
+
+      <label>PAN Card</label>
+      <input type="file" name="pan" required>
+
+      <label>Car Photo (Front)</label>
+      <input type="file" name="car_front" required>
+
+      <label>Car Photo (Side)</label>
+      <input type="file" name="car_side" required>
+
+      <button type="submit" class="submit-btn">Submit Order</button>
+    </form>
+  </div>
+</body>
+</html>
