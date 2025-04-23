@@ -1,128 +1,125 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Buy FASTag – Order Form</title>
+  <title>Buy FASTag</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      padding: 40px;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    }
-    h1 {
-      color: #ff6a00;
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    .submit-btn {
-      background: #ff6a00;
-      color: white;
-      border: none;
-      padding: 12px;
-      margin-top: 20px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 16px;
-      border-radius: 5px;
-    }
-    .note-green {
-      font-size: 14px;
-      color: green;
-      margin-top: 20px;
-      background: #e6ffe6;
-      padding: 10px;
-      border-radius: 5px;
-      text-align: left;
-    }
-    .note-red {
-      font-size: 14px;
-      color: red;
-      margin-top: 10px;
-      background: #ffecec;
-      padding: 10px;
-      border-radius: 5px;
-      text-align: left;
-    }
+    body { font-family: Arial; max-width: 600px; margin: auto; padding: 20px; }
+    label { display: block; margin-top: 15px; }
+    .warning { color: red; font-size: 13px; margin-top: 5px; }
+    .success { color: green; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Buy FASTag – ₹600</h1>
+  <h2>Buy FASTag – ₹600</h2>
 
-    <div class="note-green">
-      ₹300 Total balance in your Fastag<br>
-      🔹 ₹100 – Actual Balance<br>
-      🔹 ₹200 – Refundable Security Deposit (Can be used when balance is below ₹100)<br><br>
-      Full KYC, activation & setup included
-    </div>
+  <form id="fastagForm">
+    <label>Name</label>
+    <input type="text" id="fullName" required>
 
-    <div class="note-red">
-      ✅ RC Book, PAN Card and Aadhar Card / Driving License are compulsory documents.<br>
-      ✅ Aadhar/License & PAN must have same name & date of birth.<br>
-      ✅ You will receive an OTP during activation process.
-    </div>
+    <label>Mobile Number</label>
+    <input type="tel" id="mobile" required>
 
-    <form>
-      <label>Full Name</label>
-      <input type="text" name="fullname" required>
+    <label>Upload PAN Card</label>
+    <input type="file" id="panUpload" accept="image/*" required>
+    <div id="panData"></div>
 
-      <label>Mobile Number (for OTP)</label>
-      <input type="tel" name="mobile" required>
+    <label>Upload Aadhar or Driving License</label>
+    <input type="file" id="idUpload" accept="image/*" required>
+    <div id="idData"></div>
 
-      <label>City</label>
-      <input type="text" name="city" required>
+    <div class="warning" id="mismatchWarning"></div>
 
-      <label>Delivery Method</label>
-      <select name="delivery">
-        <option value="pickup">Pickup (₹0)</option>
-        <option value="courier">Courier – 3-7 Days (₹100)</option>
-        <option value="porter">Same Day – Surat Only (₹49–₹150 Approx)</option>
-      </select>
+    <button type="submit">Submit Order</button>
+    <div id="statusMsg"></div>
+  </form>
+<script>
+  // 🔧 Firebase Config (replace with your actual config if needed)
+  const firebaseConfig = {
+    apiKey: "YOUR_FIREBASE_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
 
-      <label>Address</label>
-      <input type="text" name="address" required>
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-      <label>RC Book (Front)</label>
-      <input type="file" name="rc_front" required>
+  const panUpload = document.getElementById('panUpload');
+  const idUpload = document.getElementById('idUpload');
+  const panData = document.getElementById('panData');
+  const idData = document.getElementById('idData');
+  const mismatchWarning = document.getElementById('mismatchWarning');
+  const statusMsg = document.getElementById('statusMsg');
 
-      <label>RC Book (Back)</label>
-      <input type="file" name="rc_back" required>
+  let panInfo = { name: "", dob: "" };
+  let idInfo = { name: "", dob: "" };
 
-      <label>Aadhar or Driving License</label>
-      <input type="file" name="id_proof" required>
+  async function extractText(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('apikey', 'helloworld'); // public demo key
+    formData.append('OCREngine', 2);
+    const res = await fetch('https://api.ocr.space/parse/image', {
+      method: 'POST',
+      body: formData
+    });
+    const json = await res.json();
+    return json.ParsedResults?.[0]?.ParsedText || '';
+  }
 
-      <label>PAN Card</label>
-      <input type="file" name="pan" required>
+  function showWarningIfMismatch() {
+    if (panInfo.name && idInfo.name && (panInfo.name !== idInfo.name || panInfo.dob !== idInfo.dob)) {
+      mismatchWarning.textContent = '⚠️ PAN and ID document Name or DOB do not match. Please re-check.';
+    } else {
+      mismatchWarning.textContent = '';
+    }
+  }
 
-      <label>Car Photo (Front)</label>
-      <input type="file" name="car_front" required>
+  panUpload.addEventListener('change', async (e) => {
+    const text = await extractText(e.target.files[0]);
+    panInfo.name = (text.match(/Name[:\-]?\s*(.*)/i) || [])[1] || '';
+    panInfo.dob = (text.match(/DOB[:\-]?\s*(.*)/i) || [])[1] || '';
+    panData.innerHTML = `<strong>PAN:</strong> ${panInfo.name || 'Name not found'}, ${panInfo.dob || 'DOB not found'}`;
+    showWarningIfMismatch();
+  });
 
-      <label>Car Photo (Side)</label>
-      <input type="file" name="car_side" required>
+  idUpload.addEventListener('change', async (e) => {
+    const text = await extractText(e.target.files[0]);
+    idInfo.name = (text.match(/Name[:\-]?\s*(.*)/i) || [])[1] || '';
+    idInfo.dob = (text.match(/DOB[:\-]?\s*(.*)/i) || [])[1] || '';
+    idData.innerHTML = `<strong>ID:</strong> ${idInfo.name || 'Name not found'}, ${idInfo.dob || 'DOB not found'}`;
+    showWarningIfMismatch();
+  });
 
-      <button type="submit" class="submit-btn">Submit Order</button>
-    </form>
-  </div>
-</body>
-</html>
+  document.getElementById('fastagForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('fullName').value;
+    const mobile = document.getElementById('mobile').value;
+
+    if (!panUpload.files[0] || !idUpload.files[0]) {
+      alert("Please upload both PAN Card and Aadhar/License.");
+      return;
+    }
+
+    const newRef = db.ref("orders").push();
+    await newRef.set({
+      name, mobile,
+      panName: panInfo.name,
+      panDOB: panInfo.dob,
+      idName: idInfo.name,
+      idDOB: idInfo.dob
+    });
+
+    statusMsg.innerHTML = '<div class="success">✅ Order submitted successfully!</div>';
+    e.target.reset();
+    panData.innerHTML = '';
+    idData.innerHTML = '';
+    mismatchWarning.textContent = '';
+  });
+</script>
